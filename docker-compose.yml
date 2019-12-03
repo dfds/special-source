@@ -1,0 +1,26 @@
+version: '3'
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    ports:
+     - 1433:1433
+    environment:
+      # - DEBUG=1                     # enable script debugging
+      - ACCEPT_EULA=Y         # Accept the EULA
+      - SA_PASSWORD=yourStrong(!)Password
+  dbtools:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      - db
+    volumes:
+      - ${PWD}/db/:/tmp
+    command: ["/opt/mssql-tools/bin/sqlcmd", "-H db","-U sa", "-p yourStrong(!)Password", "-Q CREATE DATABASE diagnostics"]
+  messagebroker:
+    image: spotify/kafka
+    ports:
+      - "2181:2181"
+      - "9092:9092"
+    environment:
+      - "ADVERTISED_HOST=localhost"
+      - "ADVERTISED_PORT=9092"
+      - "AUTO_CREATE_TOPICS=true"
